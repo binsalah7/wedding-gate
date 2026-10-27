@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>بوابة الضيوف</title>
+<style>
+:root{--bg1:#fdf6ec;--bg2:#f9e8e6;--card:#fffdfa;--tx:#3a2a22;--mut:#8a7468;--bd:#ecd9b8;--gold:#b8892f;--ok:#1b6b3a;--okbg:linear-gradient(135deg,#e4f6e8,#fff1cc);--bad:#b4233a;--badbg:#ffe4e8;--warn:#8a5a00;--warnbg:#fff1cc;--btn:linear-gradient(135deg,#d3ab55,#a8741f);box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg1:#1d1019;--bg2:#2a1424;--card:#2b1927;--tx:#fbeedd;--mut:#cdb6a8;--bd:#52364d;--gold:#e6bd62;--ok:#86e8a8;--okbg:linear-gradient(135deg,#17372b,#3a3010);--bad:#ff9aa8;--badbg:#44171f;--warn:#ffd36b;--warnbg:#3d2e0a}}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:linear-gradient(160deg,var(--bg1),var(--bg2)) fixed;color:var(--tx);font-family:system-ui,-apple-system,"Segoe UI",Tahoma,Arial,sans-serif;line-height:1.5;min-height:100vh}
+.wrap{max-width:560px;margin:0 auto;padding:14px}
+.hero{text-align:center;padding:10px 0 14px}
+.orn{color:var(--gold);letter-spacing:8px;font-size:15px}
+h1{font-size:26px;margin:2px 0;color:var(--gold);font-weight:800}
+.sub{color:var(--mut);font-size:14px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.stat{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:10px;text-align:center;box-shadow:0 2px 8px rgba(184,137,47,.12)}
+.stat b{display:block;font-size:26px;color:var(--gold)}.stat span{font-size:12px;color:var(--mut)}
+.cam{position:relative;background:#000;border-radius:18px;overflow:hidden;aspect-ratio:1/1;max-height:60vh;width:100%;border:3px solid var(--gold);box-shadow:0 6px 20px rgba(184,137,47,.25)}
+video{width:100%;height:100%;object-fit:cover}
+.frame{position:absolute;inset:18%;border:3px solid rgba(255,235,190,.95);border-radius:18px;pointer-events:none}
+.msg{margin:12px 0;padding:16px;border-radius:16px;text-align:center;font-size:20px;font-weight:800;background:var(--card);border:1px solid var(--bd)}
+.msg small{display:block;font-weight:500;font-size:14px;margin-top:4px}
+.msg.ok{background:var(--okbg);color:var(--ok);border-color:var(--gold)}.msg.bad{background:var(--badbg);color:var(--bad)}.msg.warn{background:var(--warnbg);color:var(--warn)}
+.row{display:flex;gap:8px;margin-bottom:12px}
+input{flex:1;padding:12px;border-radius:12px;border:1px solid var(--bd);background:var(--card);color:var(--tx);font-size:16px;direction:ltr;text-align:left}
+button{padding:12px 16px;border-radius:12px;border:0;background:var(--btn);color:#fff;font-size:16px;font-weight:700;cursor:pointer}
+button.sec{background:var(--card);color:var(--tx);border:1px solid var(--bd)}
+h2{font-size:16px;margin:16px 0 8px;color:var(--gold)}
+.log{background:var(--card);border:1px solid var(--bd);border-radius:14px;overflow:hidden}
+.item{display:flex;justify-content:space-between;padding:10px 12px;border-bottom:1px solid var(--bd);font-size:15px}
+.item:last-child{border:0}.item span{color:var(--mut)}
+.empty{padding:14px;color:var(--mut);text-align:center}
+.note{font-size:12px;color:var(--mut);margin-top:10px;text-align:center}
+#fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:50}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hero"><div class="orn">✦ ❀ ✦</div><h1 id="evt"></h1><div class="sub">أهلاً وسهلاً بضيوفنا الكرام</div><span id="sync" hidden></span></div>
+  <canvas id="fx"></canvas>
+  <div class="stats">
+    <div class="stat"><b id="sIn">0</b><span>الحضور</span></div>
+    <div class="stat"><b id="sLeft">500</b><span>بطاقات متبقية</span></div>
+    <div class="stat"><b id="sTot">500</b><span>إجمالي البطاقات</span></div>
+  </div>
+  <div class="cam"><video id="v" playsinline muted></video><div class="frame"></div></div>
+  <div id="dbg" class="note" style="margin:6px 0 0;direction:rtl"></div>
+  <div id="msg" class="msg">وجّه الكاميرا على باركود بطاقة الدعوة</div>
+  <div class="row"><input id="man" placeholder="أو اكتب الكود يدوياً  VIS001-XXXXXXXX" autocomplete="off"><button id="go">تحقق</button></div>
+  <button class="sec" id="cam" style="width:100%">تشغيل الكاميرا</button>
+  <button id="snap" style="width:100%;margin-top:8px">📷 التقاط صورة للكود (الكاميرا الخلفية)</button>
+  <input type="file" id="file" accept="image/*" capture="environment" hidden>
+  <h2>آخر الداخلين</h2>
+  <div class="log" id="log"><div class="empty">لا يوجد بعد</div></div>
+  <button class="sec" id="reset" style="width:100%;margin-top:14px">تصفير السجل</button>
+  <div class="note">كل بطاقة دعوة تُقبل مرة واحدة فقط.</div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
+<script>
+const CODES = {"VIS001-E83F501A": 1, "VIS002-929FDF52": 2, "VIS003-D42CE9C5": 3, "VIS004-0CE27735": 4, "VIS005-CF90DC92": 5, "VIS006-279D136C": 6, "VIS007-3E71F5CA": 7, "VIS008-B57F6DC6": 8, "VIS009-1A8A2817": 9, "VIS010-9802C2E8": 10, "VIS011-3FB3BEAC": 11, "VIS012-959D1BD1": 12, "VIS013-AD026529": 13, "VIS014-5CDFDC19": 14, "VIS015-EA50CE73": 15, "VIS016-56E804D8": 16, "VIS017-4AD2F03D": 17, "VIS018-26F605F8": 18, "VIS019-A7880CBC": 19, "VIS020-675B5F55": 20, "VIS021-ACA6388B": 21, "VIS022-C9580166": 22, "VIS023-1E800D0D": 23, "VIS024-E123FF9F": 24, "VIS025-B963CEFC": 25, "VIS026-46CA3448": 26, "VIS027-6639F3D0": 27, "VIS028-607614A8": 28, "VIS029-025F4794": 29, "VIS030-62029119": 30, "VIS031-97469D55": 31, "VIS032-836CC19F": 32, "VIS033-A4A1C921": 33, "VIS034-0076923A": 34, "VIS035-73824B3A": 35, "VIS036-4F9DD4ED": 36, "VIS037-A93A8DED": 37, "VIS038-33EB0B62": 38, "VIS039-38F19127": 39, "VIS040-6F35EFA6": 40, "VIS041-7FDC4E57": 41, "VIS042-7BC86E9F": 42, "VIS043-42C7B528": 43, "VIS044-487E2585": 44, "VIS045-C690D57A": 45, "VIS046-FF724620": 46, "VIS047-9F5B7AA0": 47, "VIS048-E546ECD3": 48, "VIS049-EDF9C5C1": 49, "VIS050-6000A2FE": 50, "VIS051-56BD7F70": 51, "VIS052-CBAC79BF": 52, "VIS053-AE70529F": 53, "VIS054-7F77FDAB": 54, "VIS055-05DE20D8": 55, "VIS056-E290B390": 56, "VIS057-62D41BBF": 57, "VIS058-79EC8ACD": 58, "VIS059-9ECDCA81": 59, "VIS060-3D3FDEFE": 60, "VIS061-0F4F0438": 61, "VIS062-29BDC6AB": 62, "VIS063-04848293": 63, "VIS064-4BEBD733": 64, "VIS065-0037DAE9": 65, "VIS066-F8DBDD5A": 66, "VIS067-41BF4F4A": 67, "VIS068-0E95CDAC": 68, "VIS069-9BA21988": 69, "VIS070-45ECB417": 70, "VIS071-FFE4459B": 71, "VIS072-3D388A18": 72, "VIS073-931225C3": 73, "VIS074-2635E5EE": 74, "VIS075-0465F220": 75, "VIS076-354B1776": 76, "VIS077-851FD5ED": 77, "VIS078-57D2955E": 78, "VIS079-3E76ECBB": 79, "VIS080-92F26510": 80, "VIS081-F3881069": 81, "VIS082-7ED99DDE": 82, "VIS083-5380E2FF": 83, "VIS084-4D241921": 84, "VIS085-16B357B0": 85, "VIS086-4CB1E919": 86, "VIS087-87A0E07B": 87, "VIS088-67F41812": 88, "VIS089-9F27B919": 89, "VIS090-C15709FE": 90, "VIS091-301D9BF6": 91, "VIS092-42528607": 92, "VIS093-82C75580": 93, "VIS094-A415861A": 94, "VIS095-6F934784": 95, "VIS096-A4AD13A6": 96, "VIS097-74818B42": 97, "VIS098-A793C094": 98, "VIS099-A287049C": 99, "VIS100-8C63BD23": 100, "VIS101-8C49BEB7": 101, "VIS102-8E8E9CC6": 102, "VIS103-8EA472B2": 103, "VIS104-EE7BB59F": 104, "VIS105-AB8940AE": 105, "VIS106-EAEEE50F": 106, "VIS107-ED766ABD": 107, "VIS108-34F8CD72": 108, "VIS109-78ECA314": 109, "VIS110-14C815B0": 110, "VIS111-78A22517": 111, "VIS112-D24888E7": 112, "VIS113-799D547B": 113, "VIS114-E223319C": 114, "VIS115-044A3EF9": 115, "VIS116-3656F6D3": 116, "VIS117-776CEE1F": 117, "VIS118-C9F94926": 118, "VIS119-F3A6883A": 119, "VIS120-6316DBCC": 120, "VIS121-77A206A1": 121, "VIS122-4AA0A036": 122, "VIS123-FEB1F9C6": 123, "VIS124-03062F91": 124, "VIS125-49AF29A6": 125, "VIS126-47059FD8": 126, "VIS127-CCBF7C0B": 127, "VIS128-4F916D7F": 128, "VIS129-8932DDE1": 129, "VIS130-6CA9B2E7": 130, "VIS131-3B962766": 131, "VIS132-793C1987": 132, "VIS133-6DBD89AB": 133, "VIS134-68111321": 134, "VIS135-DC9DE0ED": 135, "VIS136-7FC15523": 136, "VIS137-71BC41BD": 137, "VIS138-7241D7E6": 138, "VIS139-87360EDA": 139, "VIS140-9F727942": 140, "VIS141-1D11C122": 141, "VIS142-2E8D9E38": 142, "VIS143-3C215C01": 143, "VIS144-953852D6": 144, "VIS145-3C625B4C": 145, "VIS146-7F388F7A": 146, "VIS147-B93A8C1D": 147, "VIS148-FBD524CD": 148, "VIS149-3BCADCED": 149, "VIS150-5D53C19A": 150, "VIS151-774C3919": 151, "VIS152-D450641C": 152, "VIS153-964B93F1": 153, "VIS154-D80C95D2": 154, "VIS155-4339B8E1": 155, "VIS156-B380A8F0": 156, "VIS157-3A65040D": 157, "VIS158-20EF3B8E": 158, "VIS159-37C803CB": 159, "VIS160-65CF73F3": 160, "VIS161-690AA0E2": 161, "VIS162-44507573": 162, "VIS163-DCE16616": 163, "VIS164-54205569": 164, "VIS165-9303D36B": 165, "VIS166-0C8C2093": 166, "VIS167-34F44ACC": 167, "VIS168-B08B1119": 168, "VIS169-351CF59B": 169, "VIS170-223AC0A0": 170, "VIS171-DBCE296A": 171, "VIS172-40D90CCF": 172, "VIS173-7E4DF8BE": 173, "VIS174-705019F7": 174, "VIS175-27CF58E5": 175, "VIS176-F7B52CCC": 176, "VIS177-7E016187": 177, "VIS178-DA22FFFA": 178, "VIS179-BF2BA558": 179, "VIS180-E4F99B26": 180, "VIS181-4E9CF22B": 181, "VIS182-821B6D49": 182, "VIS183-8954A21F": 183, "VIS184-50321160": 184, "VIS185-A391C033": 185, "VIS186-3C98FBD5": 186, "VIS187-E803CEEF": 187, "VIS188-D8C62009": 188, "VIS189-DAA09EE6": 189, "VIS190-F17DEAC2": 190, "VIS191-07D3C0C0": 191, "VIS192-AD699D02": 192, "VIS193-0E280AB2": 193, "VIS194-D8528F9B": 194, "VIS195-52CCF7AA": 195, "VIS196-9193E8DE": 196, "VIS197-9E2A607D": 197, "VIS198-C37007DA": 198, "VIS199-490514F6": 199, "VIS200-A4EB2A2A": 200, "VIS201-AA84198B": 201, "VIS202-DFA7D21C": 202, "VIS203-5AA54487": 203, "VIS204-783B0CAE": 204, "VIS205-8E94C7F5": 205, "VIS206-90A5A8D1": 206, "VIS207-FFABE221": 207, "VIS208-D15E1C70": 208, "VIS209-54E92F5E": 209, "VIS210-3F3DBF2F": 210, "VIS211-51CF7338": 211, "VIS212-A6B5505F": 212, "VIS213-1754C0E5": 213, "VIS214-A75D2CFC": 214, "VIS215-477A326A": 215, "VIS216-001DBAA0": 216, "VIS217-CF70DF74": 217, "VIS218-C12AA479": 218, "VIS219-7ECB76E4": 219, "VIS220-73D11E64": 220, "VIS221-91325559": 221, "VIS222-9D5BD313": 222, "VIS223-0EB298A3": 223, "VIS224-5203B0E7": 224, "VIS225-777ED9C3": 225, "VIS226-549A4E72": 226, "VIS227-9EBC0090": 227, "VIS228-843AB1E4": 228, "VIS229-F2783D77": 229, "VIS230-ED2E12B8": 230, "VIS231-A8525C00": 231, "VIS232-20B9DDF5": 232, "VIS233-3EC030CB": 233, "VIS234-26314075": 234, "VIS235-CF8624DA": 235, "VIS236-7A08385A": 236, "VIS237-1EEC229C": 237, "VIS238-99555B8E": 238, "VIS239-2390CA8D": 239, "VIS240-CB38E178": 240, "VIS241-AD0D83F3": 241, "VIS242-AD3B5F91": 242, "VIS243-2EFD04C1": 243, "VIS244-FDEB0DCE": 244, "VIS245-261B524D": 245, "VIS246-6E306EA6": 246, "VIS247-89909670": 247, "VIS248-DE2BF155": 248, "VIS249-AFEBE10D": 249, "VIS250-608A678E": 250, "VIS251-412C3C86": 251, "VIS252-93008779": 252, "VIS253-A63811D8": 253, "VIS254-D3540D4D": 254, "VIS255-C5B49116": 255, "VIS256-C78D7970": 256, "VIS257-4DC4C374": 257, "VIS258-42CA1A29": 258, "VIS259-7AC51968": 259, "VIS260-EF7E9B20": 260, "VIS261-A6F14B7F": 261, "VIS262-839E13D9": 262, "VIS263-D1BE13C3": 263, "VIS264-EE1AA74F": 264, "VIS265-725001A2": 265, "VIS266-47B2669D": 266, "VIS267-E70B1C8E": 267, "VIS268-4B7F05F8": 268, "VIS269-19B32E72": 269, "VIS270-CDDCAE32": 270, "VIS271-E719FFC3": 271, "VIS272-6096F73B": 272, "VIS273-B63979D9": 273, "VIS274-C47FEC91": 274, "VIS275-7C5CB75D": 275, "VIS276-586EBF53": 276, "VIS277-6409C3AF": 277, "VIS278-87848B68": 278, "VIS279-CF41FF36": 279, "VIS280-162655F2": 280, "VIS281-8A985000": 281, "VIS282-0C147F2D": 282, "VIS283-8A1EE028": 283, "VIS284-BB473D45": 284, "VIS285-3CDEA6B1": 285, "VIS286-E6C13DE1": 286, "VIS287-C0A351DA": 287, "VIS288-871A7D1E": 288, "VIS289-7BD65167": 289, "VIS290-B53279DA": 290, "VIS291-B5ED0E3A": 291, "VIS292-D97ECCCD": 292, "VIS293-5C136A9A": 293, "VIS294-8226FDED": 294, "VIS295-8C53E172": 295, "VIS296-5CDA02FF": 296, "VIS297-844D7B6E": 297, "VIS298-433F362F": 298, "VIS299-3A6A217C": 299, "VIS300-AEBCCB9D": 300, "VIS301-468A5309": 301, "VIS302-DBA2325E": 302, "VIS303-6D992A31": 303, "VIS304-0F1312EA": 304, "VIS305-0549A752": 305, "VIS306-17FF175D": 306, "VIS307-A9CB626C": 307, "VIS308-2C9D2FC5": 308, "VIS309-366ED930": 309, "VIS310-E570943C": 310, "VIS311-F761DF27": 311, "VIS312-F3C48A33": 312, "VIS313-90D11B58": 313, "VIS314-153CCD41": 314, "VIS315-0FAB4B6E": 315, "VIS316-A8DE3942": 316, "VIS317-A2AB0708": 317, "VIS318-4CEEF2FA": 318, "VIS319-5A6B6AC5": 319, "VIS320-63BA2F67": 320, "VIS321-315B490F": 321, "VIS322-01D7F9FD": 322, "VIS323-81FD6F51": 323, "VIS324-5424F6B4": 324, "VIS325-8AA42A5D": 325, "VIS326-6ED1CA42": 326, "VIS327-BE70BA7B": 327, "VIS328-FFD1A96A": 328, "VIS329-03C4AF57": 329, "VIS330-37015200": 330, "VIS331-E7F3EBD8": 331, "VIS332-A608FF78": 332, "VIS333-115A6993": 333, "VIS334-2E6FFCF4": 334, "VIS335-3BA93D8A": 335, "VIS336-A9936596": 336, "VIS337-06919E93": 337, "VIS338-387AA348": 338, "VIS339-DE27FD34": 339, "VIS340-E6C31793": 340, "VIS341-49742D75": 341, "VIS342-73E8A79F": 342, "VIS343-D9AADBC0": 343, "VIS344-F3854A81": 344, "VIS345-9913B513": 345, "VIS346-173D2D4C": 346, "VIS347-3530418E": 347, "VIS348-98862D9D": 348, "VIS349-A0A9D54E": 349, "VIS350-4350637D": 350, "VIS351-20285B34": 351, "VIS352-71B822DA": 352, "VIS353-02FCBF7F": 353, "VIS354-6644A77B": 354, "VIS355-056D6830": 355, "VIS356-2F6817E3": 356, "VIS357-DC06B163": 357, "VIS358-5B8CB999": 358, "VIS359-94CAFD5C": 359, "VIS360-C37CC734": 360, "VIS361-70661F6D": 361, "VIS362-5FE5A4A4": 362, "VIS363-2975E15F": 363, "VIS364-1DFDC877": 364, "VIS365-9F923A9D": 365, "VIS366-3A976F43": 366, "VIS367-67123F83": 367, "VIS368-84AFFD49": 368, "VIS369-EA334834": 369, "VIS370-2D968B5C": 370, "VIS371-E1465856": 371, "VIS372-B090A814": 372, "VIS373-CB5DADA4": 373, "VIS374-16CC9F83": 374, "VIS375-6F8C9A9D": 375, "VIS376-9AF9EED4": 376, "VIS377-9C5C9E79": 377, "VIS378-602ACA26": 378, "VIS379-7211C25D": 379, "VIS380-9064160B": 380, "VIS381-0C8B380E": 381, "VIS382-024CEB65": 382, "VIS383-06EB3CA3": 383, "VIS384-5A6A356B": 384, "VIS385-1EAE97DB": 385, "VIS386-396BD73E": 386, "VIS387-198C1CCA": 387, "VIS388-747B4CCD": 388, "VIS389-2F953DAA": 389, "VIS390-25642631": 390, "VIS391-9D2CA6D8": 391, "VIS392-7EF80BCA": 392, "VIS393-B21B2AEF": 393, "VIS394-408D73CD": 394, "VIS395-F2D62B16": 395, "VIS396-9FE89EF8": 396, "VIS397-00696969": 397, "VIS398-0C7209D2": 398, "VIS399-FE37FA52": 399, "VIS400-1A2DC13D": 400, "VIS401-E70976C2": 401, "VIS402-02D41A1F": 402, "VIS403-866EF2E1": 403, "VIS404-DFD253B5": 404, "VIS405-19981AAB": 405, "VIS406-B1338C84": 406, "VIS407-6D64AF32": 407, "VIS408-AF9B6A6F": 408, "VIS409-4A7F2E24": 409, "VIS410-2F14F455": 410, "VIS411-69826A53": 411, "VIS412-F94C0254": 412, "VIS413-7146D662": 413, "VIS414-6E3D8621": 414, "VIS415-694B25B0": 415, "VIS416-A08D3486": 416, "VIS417-2C01B94B": 417, "VIS418-50D4E5ED": 418, "VIS419-56F3FA5B": 419, "VIS420-2BA5C856": 420, "VIS421-982B5458": 421, "VIS422-10C5BAA6": 422, "VIS423-CCEF800B": 423, "VIS424-DF715B39": 424, "VIS425-4FECAE8E": 425, "VIS426-445911B8": 426, "VIS427-779B4E8A": 427, "VIS428-B59CECA4": 428, "VIS429-B3E59A85": 429, "VIS430-65501C75": 430, "VIS431-89531F9F": 431, "VIS432-69648466": 432, "VIS433-2AA37A61": 433, "VIS434-6AB6FE8C": 434, "VIS435-DDFC6EBB": 435, "VIS436-15633E33": 436, "VIS437-D1560883": 437, "VIS438-86EB1A37": 438, "VIS439-9049A972": 439, "VIS440-1F8FCE94": 440, "VIS441-AAAB5A11": 441, "VIS442-52DF5063": 442, "VIS443-BE532F84": 443, "VIS444-5EED70F3": 444, "VIS445-3BA775E0": 445, "VIS446-BD7B4C90": 446, "VIS447-E340E215": 447, "VIS448-C2C4A674": 448, "VIS449-E16008BD": 449, "VIS450-961CC475": 450, "VIS451-9A94D355": 451, "VIS452-4B4860C2": 452, "VIS453-5F00EAA6": 453, "VIS454-9D9330C8": 454, "VIS455-53DB144A": 455, "VIS456-65BA9D69": 456, "VIS457-C82D8F18": 457, "VIS458-6163AC2D": 458, "VIS459-0F166E4A": 459, "VIS460-B9942D1A": 460, "VIS461-B1ADE217": 461, "VIS462-C9B05225": 462, "VIS463-7ADDD920": 463, "VIS464-3685637A": 464, "VIS465-4619B20E": 465, "VIS466-23A098FF": 466, "VIS467-996D9200": 467, "VIS468-663E6140": 468, "VIS469-F666014B": 469, "VIS470-6F341ACE": 470, "VIS471-BBA9F26F": 471, "VIS472-CE640105": 472, "VIS473-17F604AD": 473, "VIS474-0B66B1B0": 474, "VIS475-56053D9D": 475, "VIS476-E9F5D0DA": 476, "VIS477-FA854FB3": 477, "VIS478-8BFCC61D": 478, "VIS479-91C2A06C": 479, "VIS480-660F496F": 480, "VIS481-CBFFFAAA": 481, "VIS482-B35DC06A": 482, "VIS483-DEF18EB6": 483, "VIS484-3BAFF258": 484, "VIS485-E1661A74": 485, "VIS486-DF49384B": 486, "VIS487-02C5FFDC": 487, "VIS488-D7D2C38C": 488, "VIS489-A97182D8": 489, "VIS490-06F62C9E": 490, "VIS491-0B4BF3BB": 491, "VIS492-713C61EF": 492, "VIS493-191AF22C": 493, "VIS494-CD71D4B7": 494, "VIS495-8C21F035": 495, "VIS496-D5845BBB": 496, "VIS497-7A959C37": 497, "VIS498-439C889E": 498, "VIS499-BC4C3785": 499, "VIS500-C6944071": 500};
+const TOTAL = Object.keys(CODES).length;
+const $ = id => document.getElementById(id);
+let db = null, entries = {}, busy = false, last = "", lastAt = 0;
+const KEY='visitor_gate_entries_v1';
+let mem={}; try{mem=JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){}
+entries=Object.assign({},mem);
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(mem))}catch(e){}};
+
+function show(cls, title, sub){
+  const m = $("msg"); m.className = "msg " + cls;
+  m.textContent = title;
+  if(sub){ const s = document.createElement("small"); s.textContent = sub; m.appendChild(s); }
+}
+function beep(ok){
+  try{ const a = new (window.AudioContext||window.webkitAudioContext)(), notes = ok ? [660,880,1100] : [220];
+    notes.forEach((f,i)=>{ const o = a.createOscillator(), g = a.createGain(), t = a.currentTime + i*.12;
+      o.frequency.value = f; g.gain.setValueAtTime(.15,t); g.gain.exponentialRampToValueAtTime(.001,t+(ok?.25:.5));
+      o.connect(g); g.connect(a.destination); o.start(t); o.stop(t+.5); }); }catch(e){}
+  try{ navigator.vibrate && navigator.vibrate(ok ? [60,40,60] : [200,100,200]); }catch(e){}
+}
+function burst(){
+  const c = $("fx"), x = c.getContext("2d"), W = c.width = innerWidth, H = c.height = innerHeight;
+  const cols = ["#d4af37","#f4c2c2","#ffffff","#e8b4b8","#7ed6a0","#f7e7a1"];
+  const P = Array.from({length:110},()=>({x:W/2,y:H*.35,vx:(Math.random()-.5)*14,vy:-Math.random()*13-3,s:4+Math.random()*6,r:Math.random()*6,c:cols[Math.random()*cols.length|0]}));
+  let f = 0;
+  (function step(){
+    x.clearRect(0,0,W,H);
+    P.forEach(p=>{ p.vy += .35; p.x += p.vx; p.y += p.vy; p.r += .2; x.save(); x.translate(p.x,p.y); x.rotate(p.r); x.fillStyle = p.c; x.fillRect(-p.s/2,-p.s/2,p.s,p.s*.6); x.restore(); });
+    if(++f < 110) requestAnimationFrame(step); else x.clearRect(0,0,W,H);
+  })();
+}
+const fmt = t => new Date(t).toLocaleTimeString("ar-SA",{hour:"2-digit",minute:"2-digit"});
+
+function render(){
+  const list = Object.values(entries).sort((a,b)=>b.at-a.at);
+  $("sIn").textContent = list.length; $("sLeft").textContent = TOTAL - list.length; $("sTot").textContent = TOTAL;
+  const L = $("log"); L.textContent = "";
+  if(!list.length){ const e = document.createElement("div"); e.className="empty"; e.textContent="لا يوجد بعد"; L.appendChild(e); return; }
+  list.slice(0,30).forEach(x=>{
+    const d = document.createElement("div"); d.className="item";
+    const a = document.createElement("b"); a.textContent = "ضيف رقم " + x.n;
+    const b = document.createElement("span"); b.textContent = fmt(x.at);
+    d.append(a,b); L.appendChild(d);
+  });
+}
+
+async function check(raw){
+  if(busy) return; busy = true;
+  try{
+    const code = (raw||"").trim().toUpperCase();
+    if(!CODES[code]){ beep(false); show("bad","❌ بطاقة غير صالحة","المقروء: " + code.slice(0,40)); return; }
+    const n = CODES[code];
+    let prev;
+    if(db){ const s = await db.doc("entries/" + code).get(); prev = s.exists ? s.data() : null; }
+    else prev = mem[code] || null;
+    if(prev){ beep(false); show("warn","⛔ البطاقة مستخدمة مسبقاً","ضيف رقم " + n + " دخل الساعة " + fmt(prev.at)); return; }
+    const rec = {n, at: Date.now()};
+    if(db) await db.doc("entries/" + code).set(rec); else { mem[code] = rec; entries[code] = rec; save(); render(); }
+    beep(true); burst(); show("ok","🎉 حيّاكم الله، تفضّلوا","ضيف رقم " + n + " — نوّرتونا");
+  }catch(e){
+    show("bad","تعذّر الحفظ","تأكد أن لديك صلاحية التعديل وأن الاتصال شغال");
+  }finally{ setTimeout(()=>busy=false, 800); }
+}
+
+// camera + decoding
+let stream = null, odd = "", oddN = 0, dbgT = "";
+async function startCam(){
+  try{
+    stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"}}, audio:false});
+    const v = $("v"); v.srcObject = stream; await v.play(); loop();
+  }catch(e){ show("warn","الكاميرا المباشرة غير متاحة (" + (e && e.name || "خطأ") + ")","اضغط زر «التقاط صورة للكود» تحت، أو اسمح للكاميرا من إعدادات الموقع"); }
+}
+function loop(){
+  const v = $("v"), c = document.createElement("canvas"), x = c.getContext("2d",{willReadFrequently:true});
+  (function tick(){
+    if(v.readyState === 4 && !busy){
+      const vw = v.videoWidth, vh = v.videoHeight, s = Math.floor(Math.min(vw,vh)*0.8), sx = Math.floor((vw-s)/2), sy = Math.floor((vh-s)/2);
+      c.width = c.height = s; x.drawImage(v,sx,sy,s,s,0,0,s,s);
+      const r = jsQR(x.getImageData(0,0,s,s).data, s, s, {inversionAttempts:"dontInvert"});
+      const t = r && r.data ? "قرأ: " + r.data.slice(0,30) : "لا يوجد كود واضح في الإطار"; if(t !== dbgT){ dbgT = t; $("dbg").textContent = t; }
+      if(r && r.data){
+        const now = Date.now(), d = r.data.trim().toUpperCase(), okFmt = /^VIS\d{3}-[0-9A-F]{8}$/.test(d);
+        if(!okFmt){ if(d === odd) oddN++; else { odd = d; oddN = 1; } }
+        if(okFmt || oddN >= 3){
+          if(d !== last || now - lastAt > 3000){ last = d; lastAt = now; oddN = 0; check(d); }
+        }
+      }
+    }
+    requestAnimationFrame(tick);
+  })();
+}
+$("cam").onclick = startCam;
+$("snap").onclick = () => $("file").click();
+$("file").onchange = e => {
+  const f = e.target.files[0]; if(!f) return;
+  const img = new Image(), u = URL.createObjectURL(f);
+  img.onload = () => {
+    const c = document.createElement("canvas"), s = Math.min(1, 1400 / Math.max(img.width, img.height));
+    c.width = img.width * s; c.height = img.height * s;
+    const x = c.getContext("2d"); x.drawImage(img, 0, 0, c.width, c.height);
+    const r = jsQR(x.getImageData(0, 0, c.width, c.height).data, c.width, c.height, {inversionAttempts:"attemptBoth"});
+    URL.revokeObjectURL(u); e.target.value = "";
+    if(r && r.data) check(r.data); else show("warn", "ما قدرت أقرأ الكود", "قرّب الكاميرا وخلّ الكود واضح وكامل داخل الصورة");
+  };
+  img.src = u;
+};
+$("go").onclick = () => { check($("man").value); $("man").value = ""; };
+$("man").onkeydown = e => { if(e.key === "Enter") $("go").click(); };
+
+$("sync").textContent = "";
+$("reset").onclick = () => { if(confirm("تصفير سجل الدخول؟ ستصبح كل الأكواد صالحة من جديد.")){ mem={}; entries={}; save(); render(); show("","تم تصفير السجل"); } };
+const EVENT_TITLE = "حفل الزواج";
+$("evt").textContent = "💍 " + EVENT_TITLE; document.title = EVENT_TITLE;
+render(); startCam();
+</script>
+</body>
+</html>
